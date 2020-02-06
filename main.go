@@ -19,6 +19,16 @@ func showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func createSnippet(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+
+		// Calling Write() before WriteHeader()
+		// will return the page as a 200 ok status
+		w.WriteHeader(405)
+		w.Write([]byte("Method not allowed"))
+		return
+	}
+
 	w.Write([]byte("Create a new snippet..."))
 }
 
