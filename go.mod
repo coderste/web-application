@@ -1,3 +1,3 @@
-module github.com/coderste/go-web-app
+module github.com/coderste/web-application
 
-go 1.12
+go 1.13
