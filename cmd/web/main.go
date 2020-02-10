@@ -5,12 +5,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type application struct {
 	errorLog *log.Logger
-	infoLog *log.Logger
+	infoLog  *log.Logger
 }
 
 func main() {
@@ -25,54 +24,19 @@ func main() {
 
 	app := &application{
 		errorLog: errorLog,
-		infoLog: infoLog,
+		infoLog:  infoLog,
 	}
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet/", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
-
-	// Create a file server which serves files out of the "./ui/static" directory.
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
-
-	// Use the mux.Handle() function register the file server as the handler
-	// for all URL paths that start with "/static".
-	mux.Handle("/static", http.NotFoundHandler())
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	// Initialize a new http.Server struct. We set the Addr and Handler fields so
 	// that the server uses the same network address and routes as before, and set the ErrorLog
 	// field so that the server now uses the custom errorLog logger
 	server := &http.Server{
-		Addr: *addr,
+		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler: mux,
+		Handler:  app.routes(), // call the app.routes() method
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)
 	err := server.ListenAndServe()
 	errorLog.Fatal(err)
-}
-
-type neuteredFileSystem struct {
-	http.FileSystem
-}
-
-func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
-	f, err := nfs.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	s, err := f.Stat()
-	if s.IsDir() {
-		index := strings.TrimSuffix(path, "/") + "/index.html"
-		if _, err := nfs.fs.Open(index); err != nil {
-			return nil, err
-		}
-	}
-
-	return f, nil
 }
