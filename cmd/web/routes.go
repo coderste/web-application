@@ -24,11 +24,11 @@ func (app *application) routes() *http.ServeMux {
 }
 
 type neuteredFileSystem struct {
-	http.FileSystem
+	fs http.FileSystem
 }
 
 func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
-	f, err := nfs.Open(path)
+	f, err := nfs.fs.Open(path)
 	if err != nil {
 		return nil, err
 	}
