@@ -13,7 +13,26 @@ type SnippetModel struct {
 
 // Insert will insert a new snippet into the database
 func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
-	return 0, nil
+	// The SQL statement we want to run.
+	// NB: We use ? to indicate a placeholder parameter
+	statement := `INSERT INTO snippets (title, content, created, expires)
+    VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
+
+	// Use the Exec() method on the embedded connection pool to execute the statement
+	result, err := m.DB.Exec(statement, title, content, expires)
+	if err != nil {
+		return 0, err
+	}
+
+	// Use LastInsertId() to get the ID of the data
+	// we just inserted into the database
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, nil
+	}
+
+	// id above is returned as an int64 so we cast it to an int
+	return int(id), nil
 }
 
 // Get will return a specific method based on the given ID
