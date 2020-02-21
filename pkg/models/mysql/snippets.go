@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/coderste/web-application/pkg/models"
 )
@@ -37,7 +38,23 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
 
 // Get will return a specific method based on the given ID
 func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
-	return nil, nil
+	statement := `SELECT id, title, content, created, expires FROM snippets
+    WHERE expires > UTC_TIMESTAMP() AND id = ?`
+
+	row := m.DB.QueryRow(statement, id)
+
+	snippet := &models.Snippet{}
+
+	err := row.Scan(&snippet.ID, &snippet.Content, &snippet.Created, &snippet.Expires)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+
+	return snippet, nil
 }
 
 // Latest will return 10 most recently created snippets
