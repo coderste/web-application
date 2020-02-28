@@ -38,14 +38,8 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
 
 // Get will return a specific method based on the given ID
 func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
-	statement := `SELECT id, title, content, created, expires FROM snippets
-    WHERE expires > UTC_TIMESTAMP() AND id = ?`
-
-	row := m.DB.QueryRow(statement, id)
-
 	snippet := &models.Snippet{}
-
-	err := row.Scan(&snippet.ID, &snippet.Content, &snippet.Created, &snippet.Expires)
+	err := m.DB.QueryRow("SELECT ...", id).Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.ErrNoRecord
